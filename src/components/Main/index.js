@@ -1,47 +1,45 @@
-import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { createSelector } from '@reduxjs/toolkit'
 import { checkAll } from '../../state/todos'
 import Todo from './Todo'
 
+const todosSelector = state => state.todos.items
+const filterTypeSelector = state => state.todos.filterType
 const filteredTodosSelector = createSelector(
-  state => state.todos.items,
-  state => state.todos.filterType,
-  (todos, type) => {
-    switch (type) {
+  todosSelector,
+  filterTypeSelector,
+  (items, filterType) => {
+    switch (filterType) {
       case 'do':
-        return todos.filter(todo => !todo.done)
+        return items.filter(todo => !todo.done)
 
       case 'done':
-        return todos.filter(todo => todo.done)
+        return items.filter(todo => todo.done)
 
       default:
-        return todos
+        return items
     }
-  },
+  }
 )
 
-const isAllCheckedSelector = createSelector(
-  state => state.todos.items.every(todo => todo.done),
-  isAllChecked => isAllChecked,
-)
+const isAllCheckedSelector = state => state.todos.items.every(todo => todo.done)
 
 function Main() {
-  const filteredTodos = useSelector(filteredTodosSelector)
-  const isAllChecked = useSelector(isAllCheckedSelector)
   const dispatch = useDispatch()
+  const todos = useSelector(filteredTodosSelector)
+  const Todos = todos.map(todo => <Todo key={ todo.id } { ...todo }/>)
 
-  const handleCheckAll = e => {
-    const { checked } = e.target
-
-    dispatch(checkAll(checked))
-  }
-
-  const Todos = filteredTodos.map(todo => <Todo key={ todo.id } { ...todo } />)
+  const isAllChecked = useSelector(isAllCheckedSelector)
 
   return (
     <section className="main">
-      <input id="toggle-all" className="toggle-all" type="checkbox" checked={ isAllChecked } onChange={ handleCheckAll }/>
+      <input
+        checked={ isAllChecked }
+        className="toggle-all"
+        id="toggle-all"
+        onChange={ e => dispatch(checkAll(e.target.checked)) }
+        type="checkbox"
+      />
       <label htmlFor="toggle-all">Mark all as complete</label>
       <ul className="todo-list">
         { Todos }

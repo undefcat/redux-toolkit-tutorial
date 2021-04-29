@@ -6,14 +6,13 @@ import {
   edit as editTodo,
 } from '../../state/todos'
 
-function getClassName({ done, editing }) {
+function getClassName({ done, isEdit }) {
   const classNames = []
-
   if (done) {
-    classNames.push('done')
+    classNames.push('completed')
   }
 
-  if (editing) {
+  if (isEdit) {
     classNames.push('editing')
   }
 
@@ -22,28 +21,15 @@ function getClassName({ done, editing }) {
 
 function Todo({ id, done, text }) {
   const dispatch = useDispatch()
-
-  const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(text)
+  const [isEdit, setEdit] = useState(false)
   const inputEl = useRef(null)
 
   useEffect(() => {
-    inputEl.current.focus()
-  }, [editing])
-
-  const handleCheckTodo = e => {
-    const { checked } = e.target
-
-    dispatch(checkTodo({ id, checked }))
-  }
-
-  const handleEnter = e => {
-    if (!(e.key === 'Enter' || e.keyCode === 13)) {
-      return
+    if (isEdit) {
+      inputEl.current.focus()
     }
-
-    edit()
-  }
+  }, [isEdit])
 
   const edit = () => {
     const text = value.trim()
@@ -51,21 +37,42 @@ function Todo({ id, done, text }) {
       return
     }
 
-    setValue(text)
-    setEditing(false)
+    setEdit(false)
     dispatch(editTodo({ id, text }))
   }
 
-  const className = getClassName({ done, editing })
+  const handleEnter = e => {
+    if (!(e.keyCode === 13 || e.key === 'Enter')) {
+      return
+    }
 
+    edit()
+  }
+
+  const className = getClassName({ done, isEdit })
   return (
     <li className={ className }>
       <div className="view">
-        <input className="toggle" type="checkbox" checked={ done } onChange={ handleCheckTodo }/>
-        <label onDoubleClick={ () => setEditing(true) }>{ text }</label>
-        <button className="destroy" onClick={ () => dispatch(removeTodo(id)) }/>
+        <input
+          checked={ done }
+          className="toggle"
+          onChange={ e => dispatch(checkTodo({ id, checked: e.target.checked })) }
+          type="checkbox"
+        />
+        <label onDoubleClick={ () => setEdit(true) }>{ text }</label>
+        <button
+          className="destroy"
+          onClick={ () => dispatch(removeTodo(id)) }
+        />
       </div>
-      <input className="edit" ref={ inputEl } value={ value } onInput={ e => setValue(e.target.value) } onBlur={ () => edit() } onKeyDown={ handleEnter }/>
+      <input
+        className="edit"
+        onInput={ e => setValue(e.target.value) }
+        onKeyDown={ handleEnter }
+        onBlur={ () => setEdit(false) }
+        ref={ inputEl }
+        value={ value }
+      />
     </li>
   )
 }

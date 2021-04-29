@@ -2,49 +2,28 @@ import { createSlice } from '@reduxjs/toolkit'
 
 let uniqId = 0
 
-export const todosSlice = createSlice({
+const todosSlice = createSlice({
   name: 'todos',
   initialState: {
     filterType: 'all',
-    items: [
-      { id: ++uniqId, done: false, text: 'redux-toolkit 공부하기' },
-      { id: ++uniqId, done: true, text: '할게 많다' },
-    ],
+    items: [],
   },
+
   reducers: {
     add: {
       reducer: (state, action) => {
-        const todo = action.payload
-
-        state.items.push(todo)
+        state.items.push(action.payload)
       },
-      prepare: text => ({
-        payload: {
-          id: ++uniqId,
-          done: false,
-          text,
+
+      prepare: text => {
+        return {
+          payload: {
+            id: ++uniqId,
+            done: false,
+            text,
+          },
         }
-      }),
-    },
-
-    filter: (state, action) => {
-      state.filterType = action.payload
-    },
-
-    remove: (state, action) => {
-      const id = action.payload
-
-      state.items = state.items.filter(todo => todo.id !== id)
-    },
-
-    edit: (state, action) => {
-      const { id, text } = action.payload
-
-      state.items = state.items.map(todo =>
-        todo.id === id
-          ? { ...todo, text }
-          : todo
-      )
+      },
     },
 
     check: (state, action) => {
@@ -57,30 +36,49 @@ export const todosSlice = createSlice({
       )
     },
 
-    checkAll: (state, action) => {
-      const checked = action.payload
+    edit: (state, action) => {
+      const { id, text } = action.payload
 
-      state.items = state.items.map(todo => ({
-        ...todo,
-        done: checked,
-      }))
+      state.items = state.items.map(todo =>
+        todo.id === id
+          ? { ...todo, text }
+          : todo
+      )
+    },
+
+    remove: (state, action) => {
+      const id = action.payload
+
+      state.items = state.items.filter(todo => todo.id !== id)
+    },
+
+    filter: (state, action) => {
+      state.filterType = action.payload
     },
 
     clearCompleted: state => {
       state.items = state.items.filter(todo => !todo.done)
     },
 
+    checkAll: (state, action) => {
+      const done = action.payload
+
+      state.items = state.items.map(todo => ({
+        ...todo,
+        done,
+      }))
+    }
   },
 })
 
 export const {
   add,
-  filter,
-  remove,
   check,
-  checkAll,
-  clearCompleted,
   edit,
+  remove,
+  filter,
+  clearCompleted,
+  checkAll,
 } = todosSlice.actions
 
 export default todosSlice.reducer
